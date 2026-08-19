@@ -1,0 +1,6 @@
+{
+  "name": "SubTrack - Personal Finance & Subscription Tracker",
+  "description": "High-converting SaaS landing page & full-stack personal finance and subscription manager with real-time spend analytics, renewal reminders, multi-currency support, free trial countdown, and Pro tier upgrades.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
