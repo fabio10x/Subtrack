@@ -76,10 +76,10 @@ const cronHandler: Handler = async (event) => {
           if (!existingAlert) {
             alertsTriggered++;
             const isTrial = sub.is_free_trial || sub.status === 'trial';
-            
+            const daysLabel = daysUntil === 0 ? 'Today' : daysUntil + 'd';
             const title = isTrial 
               ? `⚠️ Free Trial Ending: ${sub.name}`
-              : `🔔 Upcoming Renewal: ${sub.name} in ${daysUntil === 0 ? 'Today' : \`\${daysUntil}d\`}`;
+              : `🔔 Upcoming Renewal: ${sub.name} in ${daysLabel}`;
             
             const htmlPreview = generateEmailHtml(sub.name, Number(sub.cost), sub.currency, sub.next_renewal_date, daysUntil);
 
