@@ -30,6 +30,7 @@ interface NavbarProps {
   onResetSeed: () => void;
   unreadNotifsCount: number;
   onBackToLanding?: () => void;
+  onSignOut?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -45,6 +46,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onResetSeed,
   unreadNotifsCount,
   onBackToLanding,
+  onSignOut,
 }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -174,12 +176,29 @@ export const Navbar: React.FC<NavbarProps> = ({
               className="flex items-center space-x-1.5 p-1 rounded-lg hover:bg-slate-100 border border-transparent hover:border-slate-200 transition-colors shrink-0"
               title="Account Settings & Profiles"
             >
-              <img
-                src={user.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}
-                alt={user.name}
-                className="w-8 h-8 rounded-full object-cover ring-1 ring-slate-300"
-              />
+              {user.avatar ? (
+                <img
+                  src={user.avatar}
+                  alt={user.name}
+                  className="w-8 h-8 rounded-full object-cover ring-1 ring-slate-300"
+                />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs ring-1 ring-blue-200 uppercase">
+                  {user.name ? user.name.slice(0, 2) : user.email?.slice(0, 2) || 'ME'}
+                </div>
+              )}
             </button>
+
+            {/* Sign Out Button */}
+            {onSignOut && (
+              <button
+                onClick={onSignOut}
+                className="hidden md:inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 transition-colors shrink-0 min-h-[38px]"
+                title="Sign Out"
+              >
+                <span>Sign Out</span>
+              </button>
+            )}
 
             {/* Mobile Menu Hamburger (Visible only on mobile) */}
             <button
@@ -231,39 +250,22 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <span>Upgrade to Pro ($5/mo)</span>
               </button>
             )}
+
+            {onSignOut && (
+              <button
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  onSignOut();
+                }}
+                className="w-full py-2.5 px-3 bg-white border border-slate-200 text-slate-700 rounded-lg text-xs font-semibold flex items-center justify-center"
+              >
+                Sign Out
+              </button>
+            )}
           </div>
         )}
       </div>
 
-      {/* Demo Switcher Sub-bar (Responsive scrolling bar) */}
-      <div className="bg-slate-50/90 border-t border-slate-200/70 px-3 sm:px-6 lg:px-8 py-1.5 text-xs text-slate-500">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 overflow-x-auto scrollbar-none">
-          <div className="flex items-center space-x-1.5 sm:space-x-2 shrink-0 py-0.5">
-            <span className="text-slate-400 font-medium text-[11px] sm:text-xs">Profile:</span>
-            {DEMO_USERS.map((u) => (
-              <button
-                key={u.id}
-                onClick={() => onSwitchUser(u.id)}
-                className={`px-2 sm:px-2.5 py-1 rounded-md text-[11px] sm:text-xs transition-colors shrink-0 ${
-                  user.id === u.id
-                    ? 'bg-blue-100 text-blue-800 font-semibold border border-blue-200'
-                    : 'hover:bg-slate-200 text-slate-600 bg-white border border-slate-200'
-                }`}
-              >
-                {u.name.split(' ')[0]} ({u.tier.toUpperCase()})
-              </button>
-            ))}
-          </div>
-          <button
-            onClick={onResetSeed}
-            className="flex items-center space-x-1 text-slate-500 hover:text-slate-800 transition-colors pl-2 shrink-0 text-[11px] sm:text-xs font-medium"
-            title="Reset subscriptions to clean seed data"
-          >
-            <RotateCcw className="w-3 h-3" />
-            <span>Reset Demo</span>
-          </button>
-        </div>
-      </div>
     </header>
   );
 };

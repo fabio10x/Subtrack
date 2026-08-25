@@ -25,9 +25,6 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({
   onConfirmUpgrade,
 }) => {
   const [isProcessing, setIsProcessing] = useState(false);
-  const [cardNumber, setCardNumber] = useState('4242 •••• •••• 4242');
-  const [cardExpiry, setCardExpiry] = useState('12/28');
-  const [cardCvc, setCardCvc] = useState('888');
 
   if (!isOpen) return null;
 
@@ -36,21 +33,8 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({
     setIsProcessing(true);
 
     try {
-      // Trigger API upgrade
+      // Trigger API upgrade (this will redirect window.location to Stripe)
       await onConfirmUpgrade();
-
-      // Fire celebratory confetti!
-      confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 0.6 },
-        colors: ['#2563EB', '#10B981', '#F59E0B', '#8B5CF6'],
-      });
-
-      setTimeout(() => {
-        setIsProcessing(false);
-        onClose();
-      }, 900);
     } catch (err) {
       console.error('Upgrade error:', err);
       setIsProcessing(false);
@@ -118,51 +102,19 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({
 
           {/* Stripe Checkout Form */}
           <form onSubmit={handleCheckout} className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mb-4">
               <span className="text-xs font-semibold text-slate-800 flex items-center space-x-1.5">
                 <CreditCard className="w-4 h-4 text-blue-600" />
-                <span>Stripe Checkout Payment</span>
+                <span>Secure Stripe Checkout</span>
               </span>
               <span className="text-[10px] text-slate-500 flex items-center">
                 <Lock className="w-3 h-3 mr-1 text-emerald-600" /> 256-Bit SSL Encrypted
               </span>
             </div>
-
-            <div>
-              <label className="block text-[11px] text-slate-600 mb-1">Card Information</label>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={cardNumber}
-                  onChange={(e) => setCardNumber(e.target.value)}
-                  className="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-lg text-slate-900 font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200">
-                  TEST CARD
-                </span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-[11px] text-slate-600 mb-1">Expires</label>
-                <input
-                  type="text"
-                  value={cardExpiry}
-                  onChange={(e) => setCardExpiry(e.target.value)}
-                  className="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-lg text-slate-900 font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-[11px] text-slate-600 mb-1">CVC</label>
-                <input
-                  type="text"
-                  value={cardCvc}
-                  onChange={(e) => setCardCvc(e.target.value)}
-                  className="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-lg text-slate-900 font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                />
-              </div>
-            </div>
+            
+            <p className="text-xs text-slate-600 mb-4">
+              You will be securely redirected to Stripe to complete your payment.
+            </p>
 
             <button
               id="btn-confirm-stripe-upgrade"
