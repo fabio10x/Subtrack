@@ -40,7 +40,7 @@ begin
   insert into public.subtrack_profiles (id, email, name, avatar_url)
   values (
     new.id,
-    new.email,
+    coalesce(new.email, 'guest_' || new.id || '@anonymous.local'),
     new.raw_user_meta_data->>'full_name',
     new.raw_user_meta_data->>'avatar_url'
   );

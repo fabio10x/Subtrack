@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
 import { supabase } from '../utils/supabase';
-import { AlertCircle, Loader2, MailCheck } from 'lucide-react';
+import { AlertCircle, Loader2, MailCheck, ArrowLeft } from 'lucide-react';
 
-export const Auth: React.FC = () => {
+interface AuthProps {
+  onBack?: () => void;
+}
+
+export const Auth: React.FC<AuthProps> = ({ onBack }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLogin, setIsLogin] = useState(true);
@@ -50,7 +54,16 @@ export const Auth: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F9FAFB] flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans">
+    <div className="min-h-screen bg-[#F9FAFB] flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans relative">
+      {onBack && (
+        <button
+          onClick={onBack}
+          className="absolute top-6 left-6 flex items-center space-x-2 text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Back to Home</span>
+        </button>
+      )}
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center mb-4">
           <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-sm">

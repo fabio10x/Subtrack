@@ -63,7 +63,7 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
             <div>
               <h3 className="text-lg font-bold text-slate-900">Notifications & 3-Day Cron Alerts</h3>
               <p className="text-xs text-slate-500">
-                Automated email alerts dispatched via Resend / SendGrid
+                Automated email alerts before every renewal
               </p>
             </div>
           </div>
@@ -206,8 +206,7 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
                     {selectedNotif?.id === n.id && (
                       <div className="mt-3 pt-3 border-t border-slate-200 bg-white p-3 rounded-lg text-xs space-y-2 shadow-2xs">
                         <div className="flex items-center justify-between text-slate-500 font-mono text-[10px]">
-                          <span>PROVIDER: Resend API</span>
-                          <span>STATUS: Delivered (200 OK)</span>
+                          <span>EMAIL PREVIEW</span>
                         </div>
                         <div className="font-semibold text-slate-900">Email Subject: {n.title}</div>
                         <div className="p-3 bg-slate-50 rounded border border-slate-200 text-slate-700 leading-relaxed">

@@ -26,7 +26,7 @@ function generateEmailHtml(subName: string, amount: number, currency: string, re
       <div style="background: #f8fafc; padding: 18px; border-radius: 8px; font-size: 22px; font-weight: bold; color: #2563eb; margin-bottom: 20px;">
         ${currency} ${amount.toFixed(2)}
       </div>
-      <a href="https://subtrack.app/dashboard" style="background: #f1f5f9; color: #334155; text-decoration: none; padding: 10px 18px; border-radius: 6px; display: inline-block;">Manage Subscriptions</a>
+      <a href="${process.env.URL || 'https://subtrack.app'}/dashboard" style="background: #f1f5f9; color: #334155; text-decoration: none; padding: 10px 18px; border-radius: 6px; display: inline-block;">Manage Subscriptions</a>
     </div>
   `;
 }

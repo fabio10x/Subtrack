@@ -15,11 +15,9 @@ import {
 } from 'lucide-react';
 import { UserProfile, CurrencyCode } from '../types';
 import { CURRENCIES } from '../utils/currency';
-import { DEMO_USERS } from '../data/seedData';
 
 interface NavbarProps {
   user: UserProfile;
-  onSwitchUser: (userId: string) => void;
   onUpdateCurrency: (currency: CurrencyCode) => void;
   onOpenAddModal: () => void;
   onOpenUpgradeModal: () => void;
@@ -27,7 +25,6 @@ interface NavbarProps {
   onOpenNotifications: () => void;
   onOpenOptimizer: () => void;
   onOpenExportModal: () => void;
-  onResetSeed: () => void;
   unreadNotifsCount: number;
   onBackToLanding?: () => void;
   onSignOut?: () => void;
@@ -35,7 +32,6 @@ interface NavbarProps {
 
 export const Navbar: React.FC<NavbarProps> = ({
   user,
-  onSwitchUser,
   onUpdateCurrency,
   onOpenAddModal,
   onOpenUpgradeModal,
@@ -43,7 +39,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenNotifications,
   onOpenOptimizer,
   onOpenExportModal,
-  onResetSeed,
   unreadNotifsCount,
   onBackToLanding,
   onSignOut,
