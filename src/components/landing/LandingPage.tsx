@@ -10,11 +10,13 @@ import { LandingFooter } from './LandingFooter';
 interface LandingPageProps {
   onEnterDashboard: (tier?: 'free' | 'pro') => void;
   onOpenStripeCheckout?: () => void;
+  onNavigate: (page: 'terms' | 'privacy') => void;
 }
 
 export const LandingPage: React.FC<LandingPageProps> = ({
   onEnterDashboard,
   onOpenStripeCheckout,
+  onNavigate,
 }) => {
   return (
     <div className="min-h-screen bg-white text-slate-900 font-sans antialiased selection:bg-blue-600 selection:text-white">
@@ -43,7 +45,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </main>
 
       {/* Footer */}
-      <LandingFooter onEnterDashboard={onEnterDashboard} />
+      <LandingFooter onEnterDashboard={onEnterDashboard} onNavigate={onNavigate} />
     </div>
   );
 };

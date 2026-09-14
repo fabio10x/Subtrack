@@ -4,7 +4,9 @@ import {
   User, 
   Check, 
   Sparkles, 
-  DollarSign
+  DollarSign,
+  Trash2,
+  AlertTriangle
 } from 'lucide-react';
 import { UserProfile, CurrencyCode } from '../types';
 import { CURRENCIES } from '../utils/currency';
@@ -16,6 +18,7 @@ interface ProfileModalProps {
   onUpdateProfile: (updated: Partial<UserProfile>) => void;
   onOpenUpgrade: () => void;
   onCancelPro: () => void;
+  onDeleteAccount: () => Promise<void>;
 }
 
 export const ProfileModal: React.FC<ProfileModalProps> = ({
@@ -25,6 +28,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
   onUpdateProfile,
   onOpenUpgrade,
   onCancelPro,
+  onDeleteAccount,
 }) => {
   const [name, setName] = useState(user.name);
   const [email, setEmail] = useState(user.email);
@@ -32,6 +36,9 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
   const [alertLeadDays, setAlertLeadDays] = useState(user.alertLeadDays || 3);
   const [emailAlertsEnabled, setEmailAlertsEnabled] = useState(user.emailAlertsEnabled ?? true);
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [showDeleteZone, setShowDeleteZone] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
 
   if (!isOpen) return null;
 
@@ -205,6 +212,54 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
             </div>
           </div>
         </form>
+
+        {/* Danger Zone */}
+        <div className="mx-5 mb-5 p-4 rounded-xl border border-red-200 bg-red-50">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="flex items-center space-x-2">
+                <AlertTriangle className="w-4 h-4 text-red-500" />
+                <span className="text-sm font-semibold text-red-700">Danger Zone</span>
+              </div>
+              <p className="text-xs text-red-600 mt-0.5">Permanently delete your account and all data.</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => { setShowDeleteZone(!showDeleteZone); setDeleteConfirmText(''); }}
+              className="px-2.5 py-1 text-xs text-red-600 hover:text-red-700 border border-red-300 rounded-lg hover:bg-red-100 transition-colors"
+            >
+              {showDeleteZone ? 'Cancel' : 'Delete Account'}
+            </button>
+          </div>
+
+          {showDeleteZone && (
+            <div className="mt-3 pt-3 border-t border-red-200">
+              <p className="text-xs text-red-700 mb-2">
+                This action is <strong>irreversible</strong>. All your subscriptions, notifications, and account data will be permanently removed. Type <strong>DELETE</strong> to confirm.
+              </p>
+              <input
+                type="text"
+                value={deleteConfirmText}
+                onChange={(e) => setDeleteConfirmText(e.target.value)}
+                placeholder="Type DELETE to confirm"
+                className="w-full px-3 py-1.5 text-xs border border-red-300 rounded-lg bg-white text-red-900 placeholder-red-300 focus:outline-none focus:ring-2 focus:ring-red-400 mb-2"
+              />
+              <button
+                type="button"
+                disabled={deleteConfirmText !== 'DELETE' || isDeleting}
+                onClick={async () => {
+                  setIsDeleting(true);
+                  await onDeleteAccount();
+                  setIsDeleting(false);
+                }}
+                className="w-full flex items-center justify-center space-x-1.5 py-1.5 px-3 text-xs font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>{isDeleting ? 'Deleting...' : 'Permanently Delete My Account'}</span>
+              </button>
+            </div>
+          )}
+        </div>
 
         {/* Footer */}
         <div className="p-4 border-t border-slate-100 flex items-center justify-between bg-slate-50/50">

@@ -7,6 +7,8 @@ import {
   CronRunResult 
 } from './types';
 import { LandingPage } from './components/landing/LandingPage';
+import { TermsPage } from './components/landing/TermsPage';
+import { PrivacyPage } from './components/landing/PrivacyPage';
 import { Navbar } from './components/Navbar';
 import { AnalyticsOverview } from './components/AnalyticsOverview';
 import { TrialTrackerBanner } from './components/TrialTrackerBanner';
@@ -28,16 +30,16 @@ import { Auth } from './components/Auth';
 
 export default function App() {
   // Navigation View State: 'landing' vs 'dashboard' vs 'auth'
-  const [currentView, setCurrentView] = useState<'landing' | 'dashboard' | 'auth'>(() => {
+  const [currentView, setCurrentView] = useState<'landing' | 'dashboard' | 'auth' | 'terms' | 'privacy'>(() => {
     if (typeof window !== 'undefined') {
       const hash = window.location.hash;
       const path = window.location.pathname;
       if (hash === '#dashboard' || path.includes('/dashboard')) {
         return 'dashboard';
       }
-      if (hash === '#auth') {
-        return 'auth';
-      }
+      if (hash === '#auth') return 'auth';
+      if (hash === '#terms') return 'terms';
+      if (hash === '#privacy') return 'privacy';
     }
     return 'landing';
   });
@@ -53,7 +55,11 @@ export default function App() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
-      if (session && window.location.hash === '#auth') {
+      if (_event === 'PASSWORD_RECOVERY') {
+        setIsResetPasswordModalOpen(true);
+      }
+      // Redirect to dashboard on any successful sign in or sign up
+      if ((_event === 'SIGNED_IN' || _event === 'TOKEN_REFRESHED') && session) {
         setCurrentView('dashboard');
         window.location.hash = 'dashboard';
       }
@@ -97,6 +103,11 @@ export default function App() {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+
+  // Password Reset State
+  const [isResetPasswordModalOpen, setIsResetPasswordModalOpen] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
 
   const showToast = (text: string, type: 'success' | 'error' | 'info' = 'success') => {
     setToastMessage({ text, type });
@@ -364,9 +375,54 @@ export default function App() {
     }
   };
 
-  // Downgrade Pro
+  // Downgrade Pro — redirects to Stripe Customer Portal
   const handleCancelPro = async () => {
-    showToast('Downgrade flows are handled via Stripe Customer Portal.', 'info');
+    if (!session?.user?.id) return;
+    try {
+      showToast('Opening Stripe Customer Portal...', 'info');
+      const res = await fetch('/.netlify/functions/stripe-portal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: session.user.id }),
+      });
+      const data = await res.json();
+      if (data.portalUrl && data.portalUrl !== '#simulated-portal') {
+        window.location.href = data.portalUrl;
+      } else if (data.simulated) {
+        showToast('Stripe Portal is in simulated mode (no live keys configured).', 'info');
+      } else {
+        showToast(data.error || 'Could not open Stripe Portal', 'error');
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Error connecting to Stripe Portal', 'error');
+    }
+  };
+
+  // Delete Account — calls secure Netlify function with user's auth token
+  const handleDeleteAccount = async () => {
+    if (!session?.access_token) return;
+    try {
+      const res = await fetch('/.netlify/functions/delete-account', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+      });
+      const data = await res.json();
+      if (data.success) {
+        await supabase.auth.signOut();
+        setCurrentView('landing');
+        window.location.hash = '';
+        showToast('Your account has been permanently deleted.', 'info');
+      } else {
+        showToast(data.error || 'Failed to delete account', 'error');
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Error deleting account', 'error');
+    }
   };
 
   // Run Cron Engine
@@ -462,6 +518,12 @@ export default function App() {
         setCurrentView('dashboard');
       } else if (window.location.hash === '#auth') {
         setCurrentView('auth');
+      } else if (window.location.hash === '#terms') {
+        setCurrentView('terms');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else if (window.location.hash === '#privacy') {
+        setCurrentView('privacy');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       } else if (!window.location.hash || window.location.hash === '#top') {
         // Only set to landing if hash is empty or top
       }
@@ -499,6 +561,11 @@ export default function App() {
         <LandingPage
           onEnterDashboard={handleEnterDashboard}
           onOpenStripeCheckout={handleOpenStripeFromLanding}
+          onNavigate={(page) => {
+            setCurrentView(page);
+            window.location.hash = page;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
         />
 
         {/* Global Modals for Landing Page Actions */}
@@ -514,6 +581,30 @@ export default function App() {
 
   if (currentView === 'auth') {
     return <Auth />;
+  }
+
+  if (currentView === 'terms') {
+    return (
+      <TermsPage
+        onBack={() => {
+          setCurrentView('landing');
+          window.history.pushState(null, '', window.location.pathname);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+      />
+    );
+  }
+
+  if (currentView === 'privacy') {
+    return (
+      <PrivacyPage
+        onBack={() => {
+          setCurrentView('landing');
+          window.history.pushState(null, '', window.location.pathname);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+      />
+    );
   }
 
   // Render Live Dashboard View
@@ -649,13 +740,23 @@ export default function App() {
       {/* Footer */}
       <footer className="border-t border-slate-200 bg-white text-slate-500 text-xs py-6 px-4 text-center">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p>© 2026 SubTrack — Clean Minimalism Personal Finance & Subscription Tracker.</p>
+          <p>© 2026 SubTrack — Personal Finance & Subscription Tracker.</p>
           <div className="flex items-center space-x-4 text-slate-500">
-            <span>Stripe Checkout & Webhooks</span>
+            <button
+              onClick={() => { setCurrentView('terms'); window.location.hash = 'terms'; window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+              className="hover:text-slate-800 transition-colors"
+            >
+              Terms of Service
+            </button>
             <span>•</span>
-            <span>Resend 3-Day Renewal Alerts</span>
+            <button
+              onClick={() => { setCurrentView('privacy'); window.location.hash = 'privacy'; window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+              className="hover:text-slate-800 transition-colors"
+            >
+              Privacy Policy
+            </button>
             <span>•</span>
-            <span>Role-Based Queries</span>
+            <a href="mailto:support@subtrack.app" className="hover:text-slate-800 transition-colors">Support</a>
           </div>
         </div>
       </footer>
@@ -707,6 +808,16 @@ export default function App() {
         user={currentUser}
         onUpdateProfile={async (updated) => {
           if (!session?.user?.id) return;
+          
+          if (updated.email && updated.email !== currentUser.email) {
+            const { error: authError } = await supabase.auth.updateUser({ email: updated.email });
+            if (authError) {
+              showToast(authError.message, 'error');
+              return;
+            }
+            showToast('Confirmation email sent to both addresses. Please confirm.', 'info');
+          }
+
           const { error } = await supabase.from('subtrack_profiles').update({
             name: updated.name,
             email: updated.email,
@@ -722,6 +833,7 @@ export default function App() {
         }}
         onOpenUpgrade={() => setIsUpgradeModalOpen(true)}
         onCancelPro={handleCancelPro}
+        onDeleteAccount={handleDeleteAccount}
       />
 
       <CsvExportModal
@@ -732,6 +844,42 @@ export default function App() {
         preferredCurrency={currentUser.preferredCurrency}
         onOpenUpgrade={() => setIsUpgradeModalOpen(true)}
       />
+
+      {/* Password Reset Modal */}
+      {isResetPasswordModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs">
+          <div className="bg-white rounded-xl p-6 shadow-xl max-w-sm w-full">
+            <h3 className="text-lg font-bold text-slate-900 mb-2">Update Password</h3>
+            <p className="text-sm text-slate-500 mb-4">Enter your new password below.</p>
+            <input
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:text-sm mb-4"
+              placeholder="••••••••"
+              minLength={6}
+            />
+            <button
+              disabled={isResettingPassword || newPassword.length < 6}
+              onClick={async () => {
+                setIsResettingPassword(true);
+                const { error } = await supabase.auth.updateUser({ password: newPassword });
+                setIsResettingPassword(false);
+                if (error) {
+                  showToast(error.message, 'error');
+                } else {
+                  showToast('Password updated successfully');
+                  setIsResetPasswordModalOpen(false);
+                  setNewPassword('');
+                }
+              }}
+              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+            >
+              {isResettingPassword ? 'Updating...' : 'Update Password'}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

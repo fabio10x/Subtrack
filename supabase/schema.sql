@@ -144,3 +144,36 @@ create policy "Users can update own notifications."
 create policy "Users can delete own notifications."
   on subtrack_notifications for delete
   using ( auth.uid() = user_id );
+
+-- 4. Tier Limits Enforcement
+create or replace function public.check_free_tier_limit()
+returns trigger
+language plpgsql
+security definer set search_path = public
+as $$
+declare
+  user_tier text;
+  active_count integer;
+begin
+  -- Get the user's tier
+  select tier into user_tier from public.subtrack_profiles where id = new.user_id;
+  
+  -- If free tier, check count
+  if user_tier = 'free' then
+    select count(*) into active_count 
+    from public.subtrack_subscriptions 
+    where user_id = new.user_id and status in ('active', 'trial');
+    
+    -- If inserting a new active/trial subscription would exceed 5, block it
+    if active_count >= 5 and new.status in ('active', 'trial') then
+      raise exception 'Free tier limit reached. You can only have 5 active or trial subscriptions.';
+    end if;
+  end if;
+  
+  return new;
+end;
+$$;
+
+create trigger enforce_free_tier_limit
+  before insert on public.subtrack_subscriptions
+  for each row execute procedure public.check_free_tier_limit();

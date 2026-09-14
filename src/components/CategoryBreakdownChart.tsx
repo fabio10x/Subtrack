@@ -64,7 +64,7 @@ export const CategoryBreakdownChart: React.FC<CategoryBreakdownChartProps> = ({
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
-                data={data}
+                data={[...data]}
                 cx="50%"
                 cy="50%"
                 innerRadius={56}
@@ -89,6 +89,7 @@ export const CategoryBreakdownChart: React.FC<CategoryBreakdownChartProps> = ({
                 })}
               </Pie>
               <Tooltip
+                itemSorter={() => 0}
                 content={({ active, payload }) => {
                   if (active && payload && payload.length) {
                     const item = payload[0].payload as CategoryData;
@@ -125,7 +126,7 @@ export const CategoryBreakdownChart: React.FC<CategoryBreakdownChartProps> = ({
 
         {/* Legend / Category List with Progress Bars */}
         <div className="lg:col-span-7 space-y-2.5">
-          {data
+          {[...data]
             .sort((a, b) => b.value - a.value)
             .map((cat, idx) => {
               const color = CATEGORY_COLORS[cat.name] || '#3B82F6';

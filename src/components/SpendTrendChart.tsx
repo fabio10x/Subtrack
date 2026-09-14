@@ -83,6 +83,7 @@ export const SpendTrendChart: React.FC<SpendTrendChartProps> = ({
               tickFormatter={(v) => formatCurrency(v, currency, true)}
             />
             <Tooltip
+              itemSorter={() => 0}
               content={({ active, payload }) => {
                 if (active && payload && payload.length) {
                   const item = payload[0].payload;

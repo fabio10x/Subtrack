@@ -12,9 +12,10 @@ import {
 
 interface LandingFooterProps {
   onEnterDashboard: (tier?: 'free' | 'pro') => void;
+  onNavigate: (page: 'terms' | 'privacy') => void;
 }
 
-export const LandingFooter: React.FC<LandingFooterProps> = ({ onEnterDashboard }) => {
+export const LandingFooter: React.FC<LandingFooterProps> = ({ onEnterDashboard, onNavigate }) => {
   return (
     <footer className="bg-slate-900 text-slate-400 text-xs border-t border-slate-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
@@ -76,18 +77,24 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({ onEnterDashboard }
             <h4 className="text-xs font-semibold text-white uppercase tracking-wider">Legal & Trust</h4>
             <ul className="space-y-2">
               <li>
-                <a href="#faq" className="hover:text-white transition-colors">
+                <button
+                  onClick={() => onNavigate('privacy')}
+                  className="hover:text-white transition-colors cursor-pointer text-left"
+                >
                   Privacy Policy
-                </a>
+                </button>
               </li>
               <li>
-                <a href="#faq" className="hover:text-white transition-colors">
+                <button
+                  onClick={() => onNavigate('terms')}
+                  className="hover:text-white transition-colors cursor-pointer text-left"
+                >
                   Terms of Service
-                </a>
+                </button>
               </li>
               <li>
-                <a href="#faq" className="hover:text-white transition-colors">
-                  Security Architecture
+                <a href="mailto:support@subtrack.app" className="hover:text-white transition-colors">
+                  Support
                 </a>
               </li>
               <li>

@@ -6,6 +6,7 @@ export const Auth: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLogin, setIsLogin] = useState(true);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -17,7 +18,13 @@ export const Auth: React.FC = () => {
     setSuccessMessage(null);
 
     try {
-      if (isLogin) {
+      if (isForgotPassword) {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: window.location.origin,
+        });
+        if (error) throw error;
+        setSuccessMessage(`Password reset link sent to ${email}.`);
+      } else if (isLogin) {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
       } else {
@@ -53,10 +60,14 @@ export const Auth: React.FC = () => {
           </div>
         </div>
         <h2 className="text-center text-2xl font-bold tracking-tight text-slate-900">
-          {isLogin ? 'Sign in to SubTrack' : 'Create your account'}
+          {isForgotPassword ? 'Reset your password' : isLogin ? 'Sign in to SubTrack' : 'Create your account'}
         </h2>
         <p className="mt-2 text-center text-sm text-slate-500">
-          {isLogin ? "Welcome back! Sign in to your dashboard." : "Start tracking your subscriptions for free."}
+          {isForgotPassword 
+            ? "Enter your email and we'll send you a reset link."
+            : isLogin 
+              ? "Welcome back! Sign in to your dashboard." 
+              : "Start tracking your subscriptions for free."}
         </p>
       </div>
 
@@ -95,21 +106,38 @@ export const Auth: React.FC = () => {
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="appearance-none block w-full px-3 py-2.5 border border-slate-300 rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors"
-                placeholder="••••••••"
-                minLength={6}
-              />
-              {!isLogin && (
-                <p className="mt-1.5 text-xs text-slate-400">Must be at least 6 characters.</p>
-              )}
-            </div>
+            {!isForgotPassword && (
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-sm font-medium text-slate-700">Password</label>
+                  {isLogin && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsForgotPassword(true);
+                        setError(null);
+                        setSuccessMessage(null);
+                      }}
+                      className="text-xs font-medium text-blue-600 hover:text-blue-500 focus:outline-none"
+                    >
+                      Forgot password?
+                    </button>
+                  )}
+                </div>
+                <input
+                  type="password"
+                  required={!isForgotPassword}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="appearance-none block w-full px-3 py-2.5 border border-slate-300 rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors"
+                  placeholder="••••••••"
+                  minLength={6}
+                />
+                {!isLogin && (
+                  <p className="mt-1.5 text-xs text-slate-400">Must be at least 6 characters.</p>
+                )}
+              </div>
+            )}
 
             <button
               type="submit"
@@ -119,7 +147,7 @@ export const Auth: React.FC = () => {
               {isLoading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
-                <span>{isLogin ? 'Sign In' : 'Create Account'}</span>
+                <span>{isForgotPassword ? 'Send Reset Link' : isLogin ? 'Sign In' : 'Create Account'}</span>
               )}
             </button>
           </form>
@@ -127,13 +155,21 @@ export const Auth: React.FC = () => {
           <div className="mt-6 text-center">
             <button
               onClick={() => {
-                setIsLogin(!isLogin);
+                if (isForgotPassword) {
+                  setIsForgotPassword(false);
+                } else {
+                  setIsLogin(!isLogin);
+                }
                 setError(null);
                 setSuccessMessage(null);
               }}
               className="text-sm font-medium text-blue-600 hover:text-blue-500 hover:underline"
             >
-              {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
+              {isForgotPassword 
+                ? "Back to sign in" 
+                : isLogin 
+                  ? "Don't have an account? Sign up" 
+                  : 'Already have an account? Sign in'}
             </button>
           </div>
         </div>
