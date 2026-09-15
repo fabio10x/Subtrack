@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import posthog from 'posthog-js';
 import { LandingPage } from './components/landing/LandingPage';
 import { TermsPage } from './components/landing/TermsPage';
 import { PrivacyPage } from './components/landing/PrivacyPage';
@@ -19,6 +20,17 @@ export default function App() {
     isUpgradeModalOpen, setIsUpgradeModalOpen,
     currentUser, handleConfirmUpgrade, handleEnterDashboard, handleOpenStripeFromLanding
   } = appState;
+
+  useEffect(() => {
+    if (currentUser?.id) {
+      posthog.identify(currentUser.id, {
+        email: currentUser.email,
+        tier: currentUser.tier,
+      });
+    } else {
+      posthog.reset();
+    }
+  }, [currentUser?.id, currentUser?.tier]);
 
   if (currentView === 'landing') {
     return (

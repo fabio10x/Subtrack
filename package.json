@@ -13,6 +13,7 @@
   "dependencies": {
     "@google/genai": "^2.4.0",
     "@netlify/functions": "^6.0.0",
+    "@sentry/react": "^10.74.0",
     "@supabase/auth-ui-react": "^0.4.7",
     "@supabase/auth-ui-shared": "^0.1.8",
     "@supabase/supabase-js": "^2.112.3",
@@ -23,8 +24,10 @@
     "express": "^4.21.2",
     "lucide-react": "^0.546.0",
     "motion": "^12.23.24",
+    "posthog-js": "^1.433.4",
     "react": "^19.0.1",
     "react-dom": "^19.0.1",
+    "react-error-boundary": "^6.1.5",
     "recharts": "^3.10.1",
     "stripe": "^22.5.0",
     "vite": "^6.2.3"

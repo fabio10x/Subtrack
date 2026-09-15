@@ -72,11 +72,11 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onEnterDashboard }) =>
           </div>
           <div className="flex items-center space-x-2 text-xs text-slate-600">
             <BellRing className="w-4 h-4 text-blue-600 shrink-0" />
-            <span>3-Day renewal cron alerts</span>
+            <span>3-Day automated alerts</span>
           </div>
           <div className="flex items-center space-x-2 text-xs text-slate-600">
             <Lock className="w-4 h-4 text-slate-700 shrink-0" />
-            <span>256-Bit SSL encrypted</span>
+            <span>Bank-grade security</span>
           </div>
           <div className="flex items-center space-x-2 text-xs text-slate-600">
             <Zap className="w-4 h-4 text-amber-500 shrink-0" />

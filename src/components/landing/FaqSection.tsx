@@ -8,7 +8,7 @@ export const FaqSection: React.FC = () => {
     {
       question: 'How do the automated 3-day renewal email alerts work?',
       answer:
-        'SubTrack runs an automated background cron scanner that checks all upcoming renewal dates and free trial expirations. 3 days prior to your billing date, we dispatch an email notification via Resend / SendGrid with the exact amount, payment method, and direct cancellation link so you have ample time to review or cancel.',
+        'SubTrack runs an automated background scanner that checks all upcoming renewal dates and free trial expirations. 3 days prior to your billing date, we dispatch an email notification with the exact amount, payment method, and direct cancellation link so you have ample time to review or cancel.',
     },
     {
       question: 'Do I need to connect my real bank account or share credentials?',
@@ -23,7 +23,7 @@ export const FaqSection: React.FC = () => {
     {
       question: 'How does Stripe Checkout work for the Pro tier?',
       answer:
-        'Upgrading to Pro ($5/mo or $48/yr) is powered by Stripe Checkout. All payment processing is securely handled through Stripe with 256-bit SSL encryption. You can cancel, manage payment cards, or downgrade anytime from your profile settings with zero lock-in.',
+        'Upgrading to Pro ($5/mo or $48/yr) is powered by Stripe Checkout. All payment processing is securely handled through Stripe using bank-grade encryption. You can cancel, manage payment cards, or downgrade anytime from your profile settings with zero lock-in.',
     },
     {
       question: 'Can I track subscriptions in multiple international currencies?',

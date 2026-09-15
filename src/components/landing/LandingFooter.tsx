@@ -33,7 +33,7 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({ onEnterDashboard, 
             </p>
             <div className="flex items-center space-x-2 text-[11px] text-emerald-400">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span>All Systems Operational (Cron & Stripe Active)</span>
+              <span>All Systems Operational</span>
             </div>
           </div>
 
@@ -105,52 +105,40 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({ onEnterDashboard, 
             </ul>
           </div>
 
-          {/* Developer & Portfolio */}
+          {/* Company Links */}
           <div className="space-y-3">
-            <h4 className="text-xs font-semibold text-white uppercase tracking-wider">Developer</h4>
+            <h4 className="text-xs font-semibold text-white uppercase tracking-wider">Company</h4>
             <ul className="space-y-2">
               <li>
                 <a
-                  href="https://github.com"
-                  target="_blank"
-                  rel="noreferrer"
+                  href="#about"
                   className="hover:text-white transition-colors flex items-center space-x-1.5"
                 >
-                  <Github className="w-3.5 h-3.5" />
-                  <span>GitHub Repository</span>
+                  <span>About Us</span>
                 </a>
               </li>
               <li>
                 <a
-                  href="https://twitter.com"
-                  target="_blank"
-                  rel="noreferrer"
+                  href="#blog"
                   className="hover:text-white transition-colors flex items-center space-x-1.5"
                 >
-                  <Twitter className="w-3.5 h-3.5" />
-                  <span>Twitter / X</span>
+                  <span>Blog</span>
                 </a>
               </li>
               <li>
                 <a
-                  href="https://linkedin.com"
-                  target="_blank"
-                  rel="noreferrer"
+                  href="#careers"
                   className="hover:text-white transition-colors flex items-center space-x-1.5"
                 >
-                  <Linkedin className="w-3.5 h-3.5" />
-                  <span>LinkedIn Profile</span>
+                  <span>Careers</span>
                 </a>
               </li>
               <li>
                 <a
-                  href="https://fabio.dev"
-                  target="_blank"
-                  rel="noreferrer"
+                  href="mailto:hello@subtrack.app"
                   className="hover:text-white transition-colors flex items-center space-x-1.5"
                 >
-                  <Globe className="w-3.5 h-3.5" />
-                  <span>Developer Portfolio</span>
+                  <span>Contact Us</span>
                 </a>
               </li>
             </ul>
@@ -162,8 +150,9 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({ onEnterDashboard, 
           <p>© 2026 SubTrack Inc. All rights reserved.</p>
           <div className="flex items-center space-x-4">
             <span className="flex items-center space-x-1">
-              <span>Built with React, Next.js & Tailwind CSS for</span>
-              <span className="text-slate-300 font-medium">fabiothegreat10x</span>
+              <span>Made with</span>
+              <Heart className="w-3 h-3 mx-1 text-rose-500 fill-rose-500 inline" />
+              <span>for personal finance</span>
             </span>
           </div>
         </div>

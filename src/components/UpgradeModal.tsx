@@ -108,7 +108,7 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({
                 <span>Secure Stripe Checkout</span>
               </span>
               <span className="text-[10px] text-slate-500 flex items-center">
-                <Lock className="w-3 h-3 mr-1 text-emerald-600" /> 256-Bit SSL Encrypted
+                <Lock className="w-3 h-3 mr-1 text-emerald-600" /> Bank-grade security
               </span>
             </div>
             

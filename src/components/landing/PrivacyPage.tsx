@@ -55,13 +55,13 @@ export const PrivacyPage: React.FC<PrivacyPageProps> = ({ onBack }) => {
 
           <section>
             <h2 className="text-base font-bold text-slate-900 mb-2">4. Data Storage & Security</h2>
-            <p>Your data is stored in a secure PostgreSQL database hosted by Supabase, with Row Level Security (RLS) enabled. This means your data is strictly isolated — only you can access your own subscriptions and notifications. All data is encrypted in transit (HTTPS) and at rest.</p>
+            <p>Your data is stored securely using enterprise-grade infrastructure. Your information is strictly isolated — only you can access your own subscriptions and notifications. All data is encrypted in transit (HTTPS) and at rest.</p>
           </section>
 
           <section>
             <h2 className="text-base font-bold text-slate-900 mb-2">5. Third-Party Services</h2>
             <ul className="list-disc pl-5 space-y-1">
-              <li><strong>Supabase</strong> — Database and authentication hosting (EU/US infrastructure).</li>
+              <li><strong>Authentication Provider</strong> — Secure login and identity management.</li>
               <li><strong>Stripe</strong> — Payment processing. Stripe's privacy policy governs the handling of your payment data.</li>
               <li><strong>Resend</strong> — Transactional email delivery for renewal alerts.</li>
             </ul>

@@ -60,7 +60,7 @@ export const TermsPage: React.FC<TermsPageProps> = ({ onBack }) => {
 
           <section>
             <h2 className="text-base font-bold text-slate-900 mb-2">7. Data & Privacy</h2>
-            <p>Your use of the Service is also governed by our <button onClick={onBack} className="text-blue-600 hover:underline">Privacy Policy</button>. We store your data securely on Supabase (PostgreSQL) and do not sell your personal information to third parties.</p>
+            <p>Your use of the Service is also governed by our <button onClick={onBack} className="text-blue-600 hover:underline">Privacy Policy</button>. We store your data securely using enterprise-grade infrastructure and do not sell your personal information to third parties.</p>
           </section>
 
           <section>

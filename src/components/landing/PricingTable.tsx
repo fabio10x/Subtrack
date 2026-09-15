@@ -186,7 +186,7 @@ export const PricingTable: React.FC<PricingTableProps> = ({
               </button>
               <div className="flex items-center justify-center space-x-2 text-[11px] text-slate-400 mt-2.5">
                 <Lock className="w-3 h-3 text-emerald-400" />
-                <span>Stripe Certified 256-Bit SSL Checkout</span>
+                <span>Secure Checkout powered by Stripe</span>
               </div>
             </div>
           </div>

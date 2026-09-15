@@ -20,13 +20,13 @@ export const FeatureGrid: React.FC<FeatureGridProps> = ({ onEnterDashboard }) =>
       icon: BellRing,
       color: 'bg-blue-50 text-blue-600 border-blue-200',
       title: 'Automated 3-Day Email Alerts',
-      badge: 'Cron Automation',
+      badge: 'Smart Alerts',
       description:
-        'Background cron jobs scan your renewal dates continuously and trigger email warnings via Resend / SendGrid 3 days before any credit card gets charged.',
+        'We quietly watch your renewal dates in the background and send you an email 3 days before any subscription charges your card — giving you enough time to cancel if you need to.',
       points: [
-        'Configurable 1, 3, 5, or 7-day advance notice',
-        'Direct link to service account cancellation page',
-        'Zero unexpected annual or quarterly surprise charges',
+        'Choose 1, 3, 5, or 7-day advance notice',
+        'Includes a direct link to cancel the service',
+        'No more surprise annual or quarterly charges',
       ],
     },
     {
@@ -34,13 +34,13 @@ export const FeatureGrid: React.FC<FeatureGridProps> = ({ onEnterDashboard }) =>
       icon: PieChart,
       color: 'bg-indigo-50 text-indigo-600 border-indigo-200',
       title: 'Visual Spend Analytics',
-      badge: 'Dynamic Charts',
+      badge: 'Spending Insights',
       description:
-        'Interactive Recharts donut breakdowns, normalized monthly projections, and annual run-rate forecasts across all expense categories.',
+        'See exactly where your money goes every month. Interactive charts break down your spending by category, show monthly totals, and forecast your full-year cost.',
       points: [
-        'Real-time Category Breakdown donut charts',
-        'Historical vs. 6-month projected spend trends',
-        'Smart Cost Optimizer with annual switch arbitrage',
+        'Category breakdown charts updated in real-time',
+        'Compare current vs. projected future spending',
+        'Spot savings opportunities with the Cost Optimizer',
       ],
     },
     {
@@ -50,25 +50,25 @@ export const FeatureGrid: React.FC<FeatureGridProps> = ({ onEnterDashboard }) =>
       title: 'Free Trial Countdown Tracker',
       badge: 'No Trial Traps',
       description:
-        'Never get tricked by dark patterns. Track exact trial expiration dates with urgent countdown countdown badges and direct 1-click cancellation links.',
+        'Never get charged for a trial you forgot to cancel. Track exactly how many days are left on each free trial and cancel with one click before you get billed.',
       points: [
-        'Days-remaining countdown clock on active trials',
-        'Shows converted post-trial recurring price',
-        'One-click direct cancellation URLs',
+        'Live countdown showing days remaining on each trial',
+        'Shows the full price you will be charged after the trial',
+        'One-click link to cancel directly on the service\'s website',
       ],
     },
     {
       id: 'multi-currency',
       icon: Globe2,
       color: 'bg-emerald-50 text-emerald-600 border-emerald-200',
-      title: 'Multi-Currency Conversion',
-      badge: 'Global Finance',
+      title: 'Multi-Currency Support',
+      badge: 'Global Ready',
       description:
-        'Track international SaaS tools priced in USD, EUR, GBP, JPY, CAD, or AUD. SubTrack normalizes all costs into your preferred base currency instantly.',
+        'Subscribe to services in any currency worldwide. SubTrack automatically converts everything into your preferred currency so you always see the true cost at a glance.',
       points: [
-        'Supports USD, EUR, GBP, JPY, CAD, AUD, CHF, INR, BRL',
-        'Automatic monthly equivalent normalization',
-        'Seamless single-click currency switching',
+        'Supports USD, EUR, GBP, JPY, CAD, AUD, CHF, INR & BRL',
+        'All prices shown in your home currency automatically',
+        'Switch your base currency anytime with one click',
       ],
     },
   ];
@@ -82,10 +82,10 @@ export const FeatureGrid: React.FC<FeatureGridProps> = ({ onEnterDashboard }) =>
             <span>Built for Modern Consumers & Freelancers</span>
           </div>
           <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-            Everything You Need to Stop Recurring Waste
+            Everything You Need to Stop Wasting Money
           </h2>
           <p className="mt-3 text-sm sm:text-base text-slate-600">
-            Engineered with modern full-stack performance to give you effortless financial control.
+            Simple, powerful tools designed to keep you in control of what you pay every month.
           </p>
         </div>
 
