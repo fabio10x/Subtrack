@@ -13,7 +13,7 @@ interface DashboardModalsProps {
 
 export function DashboardModals({ appState }: DashboardModalsProps) {
   const {
-    currentUser, subscriptions, notifications,
+    currentUser, subscriptions, notifications, session,
     isSubModalOpen, setIsSubModalOpen, subToEdit, setSubToEdit,
     isUpgradeModalOpen, setIsUpgradeModalOpen,
     isOptimizerOpen, setIsOptimizerOpen,
@@ -61,6 +61,7 @@ export function DashboardModals({ appState }: DashboardModalsProps) {
         isOpen={isProfileModalOpen}
         onClose={() => setIsProfileModalOpen(false)}
         user={currentUser}
+        session={session}
         onUpdateProfile={handleUpdateProfile}
         onOpenUpgrade={() => setIsUpgradeModalOpen(true)}
         onCancelPro={handleCancelPro}

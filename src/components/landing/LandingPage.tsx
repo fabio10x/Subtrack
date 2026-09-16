@@ -34,7 +34,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <ProductPreview onEnterDashboard={onEnterDashboard} />
 
         {/* 3. Feature Grid */}
-        <FeatureGrid onEnterDashboard={onEnterDashboard} />
+        <FeatureGrid onEnterDashboard={onEnterDashboard} onGoToAuth={onGoToAuth} />
 
         {/* 4. Pricing Table */}
         <PricingTable 

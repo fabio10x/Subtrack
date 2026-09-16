@@ -11,9 +11,10 @@ import {
 
 interface FeatureGridProps {
   onEnterDashboard: (tier?: 'free' | 'pro') => void;
+  onGoToAuth: () => void;
 }
 
-export const FeatureGrid: React.FC<FeatureGridProps> = ({ onEnterDashboard }) => {
+export const FeatureGrid: React.FC<FeatureGridProps> = ({ onEnterDashboard, onGoToAuth }) => {
   const features = [
     {
       id: 'alerts',
@@ -128,7 +129,7 @@ export const FeatureGrid: React.FC<FeatureGridProps> = ({ onEnterDashboard }) =>
 
                 <div className="mt-6 pt-4 border-t border-slate-100">
                   <button
-                    onClick={() => onEnterDashboard('free')}
+                    onClick={() => onGoToAuth()}
                     className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center space-x-1 transition-colors cursor-pointer group"
                   >
                     <span>Test feature in live dashboard</span>
