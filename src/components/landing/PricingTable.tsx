@@ -11,11 +11,13 @@ import {
 
 interface PricingTableProps {
   onEnterDashboard: (tier?: 'free' | 'pro') => void;
+  onGoToAuth: () => void;
   onOpenStripeCheckout?: () => void;
 }
 
 export const PricingTable: React.FC<PricingTableProps> = ({ 
   onEnterDashboard,
+  onGoToAuth,
   onOpenStripeCheckout
 }) => {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
@@ -109,7 +111,7 @@ export const PricingTable: React.FC<PricingTableProps> = ({
             <div className="mt-8 pt-4">
               <button
                 id="pricing-btn-free-tier"
-                onClick={() => onEnterDashboard('free')}
+                onClick={() => onGoToAuth()}
                 className="w-full py-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs sm:text-sm font-semibold transition-all text-center cursor-pointer"
               >
                 Get Started Free

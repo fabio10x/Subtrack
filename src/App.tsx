@@ -37,6 +37,11 @@ export default function App() {
       <>
         <LandingPage
           onEnterDashboard={handleEnterDashboard}
+          onGoToAuth={() => {
+            setCurrentView('auth');
+            window.location.hash = 'auth';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
           onOpenStripeCheckout={handleOpenStripeFromLanding}
           onNavigate={(page) => {
             setCurrentView(page);

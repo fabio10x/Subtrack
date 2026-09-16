@@ -57,22 +57,50 @@ export function useAppData({ session }: UseAppDataProps) {
 
       // Guest Demo Seeding
       if (session?.user?.is_anonymous && mappedSubs.length === 0) {
+        const today = new Date().toISOString().split('T')[0];
+        const daysFromNow = (d: number) => new Date(Date.now() + d * 86400000).toISOString().split('T')[0];
         const demoSubs = [
           {
             user_id: userId, name: 'Netflix', cost: 15.49, currency: 'USD',
             billing_cycle: 'monthly', category: 'Entertainment', status: 'active',
-            start_date: new Date().toISOString(), next_renewal_date: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-            brand_color: '#E50914'
+            payment_method: 'Credit Card', start_date: today,
+            next_renewal_date: daysFromNow(15), brand_color: '#E50914',
+            website_url: 'https://netflix.com',
           },
           {
             user_id: userId, name: 'Spotify', cost: 10.99, currency: 'USD',
             billing_cycle: 'monthly', category: 'Entertainment', status: 'active',
-            start_date: new Date().toISOString(), next_renewal_date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-            brand_color: '#1DB954'
-          }
+            payment_method: 'Credit Card', start_date: today,
+            next_renewal_date: daysFromNow(5), brand_color: '#1DB954',
+            website_url: 'https://spotify.com',
+          },
+          {
+            user_id: userId, name: 'iCloud+', cost: 2.99, currency: 'USD',
+            billing_cycle: 'monthly', category: 'Productivity', status: 'active',
+            payment_method: 'Credit Card', start_date: today,
+            next_renewal_date: daysFromNow(22), brand_color: '#147EFB',
+            website_url: 'https://icloud.com',
+          },
+          {
+            user_id: userId, name: 'ChatGPT Plus', cost: 20.00, currency: 'USD',
+            billing_cycle: 'monthly', category: 'Productivity', status: 'active',
+            payment_method: 'Credit Card', start_date: today,
+            next_renewal_date: daysFromNow(3), brand_color: '#10a37f',
+            website_url: 'https://chat.openai.com',
+          },
+          {
+            user_id: userId, name: 'Adobe Creative Cloud', cost: 54.99, currency: 'USD',
+            billing_cycle: 'monthly', category: 'Design', status: 'trial',
+            is_free_trial: true, trial_start_date: today, trial_end_date: daysFromNow(10),
+            auto_renews_after_trial: true, trial_converted_cost: 54.99,
+            payment_method: 'Credit Card', start_date: today,
+            next_renewal_date: daysFromNow(10), brand_color: '#FF0000',
+            website_url: 'https://adobe.com',
+          },
         ];
-        await supabase.from('subtrack_subscriptions').insert(demoSubs);
-        
+        const { error: seedError } = await supabase.from('subtrack_subscriptions').insert(demoSubs);
+        if (seedError) console.error('[GuestDemo] Seeding failed:', seedError);
+
         const { data: newSubsData } = await supabase.from('subtrack_subscriptions').select('*').order('created_at', { ascending: false });
         if (newSubsData) {
           mappedSubs = newSubsData.map(s => ({

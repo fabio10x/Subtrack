@@ -12,9 +12,10 @@ import {
 
 interface HeroSectionProps {
   onEnterDashboard: (tier?: 'free' | 'pro') => void;
+  onGoToAuth: () => void;
 }
 
-export const HeroSection: React.FC<HeroSectionProps> = ({ onEnterDashboard }) => {
+export const HeroSection: React.FC<HeroSectionProps> = ({ onEnterDashboard, onGoToAuth }) => {
   return (
     <section className="relative pt-12 pb-16 sm:pt-20 sm:pb-24 overflow-hidden">
       {/* Background Subtle Accent Gradients */}
@@ -47,7 +48,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onEnterDashboard }) =>
         <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row items-center justify-center gap-3.5 max-w-md mx-auto">
           <button
             id="hero-btn-get-started"
-            onClick={() => onEnterDashboard('free')}
+            onClick={() => onGoToAuth()}
             className="w-full sm:w-auto px-7 py-3.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-semibold text-sm sm:text-base shadow-sm shadow-blue-600/20 transition-all flex items-center justify-center space-x-2 cursor-pointer group"
           >
             <span>Get Started Free</span>

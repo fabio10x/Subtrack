@@ -3,9 +3,10 @@ import { CreditCard, Sparkles, ArrowRight, Menu, X, ShieldCheck } from 'lucide-r
 
 interface LandingHeaderProps {
   onEnterDashboard: (tier?: 'free' | 'pro') => void;
+  onGoToAuth: () => void;
 }
 
-export const LandingHeader: React.FC<LandingHeaderProps> = ({ onEnterDashboard }) => {
+export const LandingHeader: React.FC<LandingHeaderProps> = ({ onEnterDashboard, onGoToAuth }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const scrollToSection = (id: string) => {
@@ -72,7 +73,7 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({ onEnterDashboard }
             </button>
             <button
               id="header-btn-get-started"
-              onClick={() => onEnterDashboard('free')}
+              onClick={() => onGoToAuth()}
               className="px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-blue-600 hover:bg-blue-500 rounded-xl shadow-sm transition-all flex items-center space-x-1.5 cursor-pointer"
             >
               <span>Get Started Free</span>
@@ -130,7 +131,7 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({ onEnterDashboard }
                 Try Live Guest Demo
               </button>
               <button
-                onClick={() => onEnterDashboard('free')}
+                onClick={() => onGoToAuth()}
                 className="w-full py-2.5 px-4 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-500 rounded-xl text-center shadow-sm"
               >
                 Get Started Free
