@@ -37,6 +37,8 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({
       await onConfirmUpgrade();
     } catch (err) {
       console.error('Upgrade error:', err);
+    } finally {
+      // If no redirect happened (error, or payments not configured), let the user try again
       setIsProcessing(false);
     }
   };
@@ -85,7 +87,7 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({
             </h4>
             {[
               'Unlimited Subscriptions Tracking (Free tier capped at 5)',
-              'Automated 3-Day Renewal Email Alerts via Resend / SendGrid',
+              'Automated 3-Day Renewal Email Alerts',
               'Full CSV Financial Data Export & Backup',
               'Smart AI Cost Optimizer & Annual Arbitrage Analyzer',
               'Free Trial Countdown Expiry Alerts & Direct Cancel Links',

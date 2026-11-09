@@ -7,15 +7,15 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY || ''
 );
 
-// We need to implement a basic days until calculator since we can't easily import from src/ in Netlify Functions without a bundler setup
+// Timezone-safe day difference: parse the YYYY-MM-DD parts directly so
+// new Date('YYYY-MM-DD') (which is UTC) can't shift the result by a day.
 function getDaysUntil(dateStr: string): number {
   if (!dateStr) return 0;
-  const target = new Date(dateStr);
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const target = Date.UTC(y, m - 1, d);
   const now = new Date();
-  target.setHours(0, 0, 0, 0);
-  now.setHours(0, 0, 0, 0);
-  const diffTime = target.getTime() - now.getTime();
-  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  const today = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+  return Math.round((target - today) / (1000 * 60 * 60 * 24));
 }
 
 function generateEmailHtml(subName: string, amount: number, currency: string, renewalDate: string, daysLeft: number): string {
@@ -34,6 +34,16 @@ function generateEmailHtml(subName: string, amount: number, currency: string, re
 // The core Cron handler logic
 const cronHandler: Handler = async (event) => {
   console.log('Running SubTrack Renewal Cron Check...');
+
+  // Scheduled runs come from Netlify and have no HTTP event. Any HTTP call must present CRON_SECRET,
+  // so the endpoint can't be triggered by anyone who finds the URL.
+  if (event && event.httpMethod) {
+    const expected = process.env.CRON_SECRET;
+    const provided = event.headers['x-cron-secret'];
+    if (!expected || provided !== expected) {
+      return { statusCode: 401, body: JSON.stringify({ error: 'Unauthorized' }) };
+    }
+  }
 
   try {
     // 1. Fetch all PRO users with email alerts enabled
@@ -64,14 +74,15 @@ const cronHandler: Handler = async (event) => {
         const daysUntil = getDaysUntil(sub.next_renewal_date);
 
         if (daysUntil >= 0 && daysUntil <= thresholdDays) {
-          // Check if an alert was already sent for this specific renewal date
+          // Check if an alert was already SUCCESSFULLY sent for this specific renewal date
           const { data: existingAlert } = await supabaseAdmin
             .from('subtrack_notifications')
             .select('id')
             .eq('subscription_id', sub.id)
             .eq('renewal_date', sub.next_renewal_date)
+            .eq('status', 'sent')
             .limit(1)
-            .single();
+            .maybeSingle();
 
           if (!existingAlert) {
             alertsTriggered++;
@@ -83,24 +94,37 @@ const cronHandler: Handler = async (event) => {
             
             const htmlPreview = generateEmailHtml(sub.name, Number(sub.cost), sub.currency, sub.next_renewal_date, daysUntil);
 
-            // Send Email via Resend
-            if (process.env.RESEND_API_KEY) {
-              await fetch('https://api.resend.com/emails', {
-                method: 'POST',
-                headers: {
-                  'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                  from: 'SubTrack Alerts <alerts@resend.dev>',
-                  to: user.email,
-                  subject: title,
-                  html: htmlPreview,
-                }),
-              });
+            // Send Email via Resend and record the real outcome
+            let deliveryStatus: 'sent' | 'failed' = 'failed';
+            if (!process.env.RESEND_API_KEY) {
+              console.error(`RESEND_API_KEY missing; alert for ${sub.name} (${user.email}) not emailed`);
+            } else {
+              try {
+                const resendRes = await fetch('https://api.resend.com/emails', {
+                  method: 'POST',
+                  headers: {
+                    'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    from: 'SubTrack Alerts <alerts@resend.dev>',
+                    to: user.email,
+                    subject: title,
+                    html: htmlPreview,
+                  }),
+                });
+                if (resendRes.ok) {
+                  deliveryStatus = 'sent';
+                } else {
+                  console.error(`Resend failed for ${sub.name} (${user.email}): ${resendRes.status} ${await resendRes.text()}`);
+                }
+              } catch (err: any) {
+                console.error(`Resend request error for ${sub.name} (${user.email}):`, err.message);
+              }
             }
 
-            // Save Notification to Database
+            // Save notification. Only 'sent' rows count as delivered; 'failed' rows are retried next run
+            // because the dedupe check below only looks at successful sends.
             await supabaseAdmin.from('subtrack_notifications').insert({
               user_id: user.id,
               subscription_id: sub.id,
@@ -112,7 +136,7 @@ const cronHandler: Handler = async (event) => {
               amount: sub.cost,
               currency: sub.currency,
               days_remaining: daysUntil,
-              status: 'sent',
+              status: deliveryStatus,
               email_recipient: user.email,
               email_html_preview: htmlPreview,
               read: false,

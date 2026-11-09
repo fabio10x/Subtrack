@@ -194,7 +194,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
             <div className="flex items-center justify-between">
               <div>
                 <div className="text-xs font-semibold text-slate-900">Automated Email Renewal Alerts</div>
-                <div className="text-[11px] text-slate-500">Receive Resend/SendGrid alerts before card charge</div>
+                <div className="text-[11px] text-slate-500">Receive email alerts before card charge</div>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input

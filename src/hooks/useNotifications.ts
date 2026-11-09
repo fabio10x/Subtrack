@@ -21,20 +21,13 @@ export function useNotifications({ notifications, setNotifications, session, fet
     setNotifications(prev => prev.filter(n => n.id !== id));
   };
 
+  // Manual trigger removed: cron-check now requires a server-side CRON_SECRET, which must never
+  // be shipped to the browser. Alerts run on the daily Netlify schedule.
   const handleTriggerCron = async (): Promise<CronRunResult> => {
-    try {
-      const res = await fetch('/.netlify/functions/cron-check', { method: 'POST' });
-      const data = await res.json();
-      await fetchAllData(session?.user?.id);
-      return {
-        timestamp: new Date().toISOString(), scannedCount: 0,
-        alertsTriggered: data.alertsTriggered || 0, notificationsCreated: [],
-        message: 'Cron executed successfully',
-      };
-    } catch (err) {
-      console.error(err);
-      return { timestamp: '', scannedCount: 0, alertsTriggered: 0, notificationsCreated: [], message: 'Cron failed' };
-    }
+    return {
+      timestamp: '', scannedCount: 0, alertsTriggered: 0, notificationsCreated: [],
+      message: 'Manual alert runs are disabled. Alerts are sent by the daily scheduled job.',
+    };
   };
 
   const unreadNotifsCount = notifications.filter(n => !n.read).length;

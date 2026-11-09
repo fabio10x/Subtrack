@@ -7,4 +7,7 @@ coverage/
 .env*
 !.env.example
 bun.lock
-End Tick.md
+# End Tick.md
+Launch Framework Template.md
+# Local Netlify folder
+.netlify

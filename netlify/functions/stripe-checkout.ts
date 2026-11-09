@@ -1,21 +1,32 @@
 import { Handler } from '@netlify/functions';
 import Stripe from 'stripe';
+import { createClient } from '@supabase/supabase-js';
+import { getClerkUserId } from './_clerk';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2025-01-27.acacia' as any,
+  apiVersion: '2026-07-29.dahlia' as any,
 });
+
+const supabaseAdmin = createClient(
+  process.env.VITE_SUPABASE_URL || '',
+  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+);
 
 export const handler: Handler = async (event) => {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
 
-  try {
-    const { userId, userEmail } = JSON.parse(event.body || '{}');
+  // Identity comes from the verified Clerk token, never from the request body
+  const userId = await getClerkUserId(event.headers['authorization']);
+  if (!userId) {
+    return { statusCode: 401, body: JSON.stringify({ error: 'Unauthorized' }) };
+  }
 
-    if (!userId) {
-      return { statusCode: 400, body: JSON.stringify({ error: 'Missing userId' }) };
-    }
+  try {
+    const { data: profile } = await supabaseAdmin
+      .from('subtrack_profiles').select('email').eq('id', userId).single();
+    const userEmail = profile?.email;
 
     if (!process.env.STRIPE_SECRET_KEY) {
       return {

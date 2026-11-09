@@ -11,14 +11,18 @@ interface UseProfileActionsProps {
   setCurrentUser: Dispatch<SetStateAction<UserProfile>>;
   fetchAllData: (userId?: string) => Promise<void>;
   setCurrentView: (view: ViewType) => void;
+  getAccessToken: () => Promise<string | null>;
+  signOut: () => Promise<void>;
+  isGuest: boolean;
 }
 
 export function useProfileActions({
-  session, currentUser, showToast, setCurrentUser, fetchAllData, setCurrentView
+  session, currentUser, showToast, setCurrentUser, fetchAllData, setCurrentView,
+  getAccessToken, signOut, isGuest,
 }: UseProfileActionsProps) {
 
   const handleUpdateCurrency = async (newCurrency: CurrencyCode) => {
-    if (!session?.user?.id) return;
+    if (!session?.user?.id || isGuest) return;
     try {
       const { error } = await supabase.from('subtrack_profiles')
         .update({ preferred_currency: newCurrency }).eq('id', session.user.id);
@@ -34,41 +38,61 @@ export function useProfileActions({
     name?: string; email?: string; preferredCurrency?: string;
     alertLeadDays?: number; emailAlertsEnabled?: boolean;
   }) => {
-    if (!session?.user?.id) return;
-    if (updated.email && updated.email !== currentUser.email) {
-      const { error: authError } = await supabase.auth.updateUser({ email: updated.email });
-      if (authError) { showToast(authError.message, 'error'); return; }
-      showToast('Confirmation email sent to both addresses. Please confirm.', 'info');
-    }
+    if (!session?.user?.id || isGuest) return;
+    // Email is managed by Clerk: it is changed from the Clerk user profile, not here
     const { error } = await supabase.from('subtrack_profiles').update({
-      name: updated.name, email: updated.email, preferred_currency: updated.preferredCurrency,
+      name: updated.name, preferred_currency: updated.preferredCurrency,
       alert_lead_days: updated.alertLeadDays, email_alerts_enabled: updated.emailAlertsEnabled,
     }).eq('id', session.user.id);
     if (!error) { setCurrentUser(prev => ({ ...prev, ...updated })); fetchAllData(session.user.id); }
   };
 
+  const authedFetch = async (path: string, body: object = {}) => {
+    const token = await getAccessToken();
+    if (!token) throw new Error('Not signed in');
+    return fetch(path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify(body),
+    });
+  };
+
   const handleConfirmUpgrade = async () => {
-    if (!session?.user?.id) return;
+    if (!session?.user?.id || isGuest) {
+      showToast('Sign in with an account to upgrade to Pro.', 'info');
+      return;
+    }
     try {
-      const res = await fetch('/.netlify/functions/stripe-checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: session.user.id, userEmail: session.user.email }),
-      });
-      const data = await res.json();
-      if (data.checkoutUrl) window.location.href = data.checkoutUrl;
-      else showToast('Checkout session failed to create', 'error');
-    } catch (err) { console.error(err); showToast('Error connecting to Stripe', 'error'); }
+      const res = await authedFetch('/.netlify/functions/stripe-checkout');
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data) {
+        // Non-JSON or error status: the functions server is unreachable or rejected the request
+        const hint = res.status === 404
+          ? 'Payments server not reachable. Open the app via "npx netlify dev" (port 8888).'
+          : `Checkout failed (HTTP ${res.status}).`;
+        showToast(hint, 'error');
+        return;
+      }
+      if (data.checkoutUrl && data.checkoutUrl.startsWith('https://')) {
+        window.location.href = data.checkoutUrl;
+        return;
+      }
+      if (data.simulated) {
+        showToast('Payments are not configured yet (Stripe keys missing). Upgrade is unavailable.', 'info');
+      } else {
+        showToast(data.error || 'Checkout session failed to create', 'error');
+      }
+    } catch (err) {
+      console.error(err);
+      showToast(err instanceof Error && err.message === 'Not signed in' ? 'Please sign in to upgrade.' : 'Error connecting to Stripe', 'error');
+    }
   };
 
   const handleCancelPro = async () => {
-    if (!session?.user?.id) return;
+    if (!session?.user?.id || isGuest) return;
     try {
       showToast('Opening Stripe Customer Portal...', 'info');
-      const res = await fetch('/.netlify/functions/stripe-portal', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: session.user.id }),
-      });
+      const res = await authedFetch('/.netlify/functions/stripe-portal');
       const data = await res.json();
       if (data.portalUrl && data.portalUrl !== '#simulated-portal') window.location.href = data.portalUrl;
       else if (data.simulated) showToast('Stripe Portal is in simulated mode (no live keys configured).', 'info');
@@ -77,15 +101,12 @@ export function useProfileActions({
   };
 
   const handleDeleteAccount = async () => {
-    if (!session?.access_token) return;
+    if (!session?.user?.id || isGuest) return;
     try {
-      const res = await fetch('/.netlify/functions/delete-account', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
-      });
+      const res = await authedFetch('/.netlify/functions/delete-account');
       const data = await res.json();
       if (data.success) {
-        await supabase.auth.signOut();
+        await signOut();
         setCurrentView('landing');
         window.location.hash = '';
         showToast('Your account has been permanently deleted.', 'info');

@@ -3,6 +3,29 @@ import { UserProfile, Subscription, NotificationItem, CurrencyCode } from '../ty
 import { getMonthlyEquivalent } from '../utils/currency';
 import { supabase } from '../utils/supabase';
 
+// In-memory demo data for guest mode. Never written to the database.
+function buildGuestDemoSubscriptions(userId: string): Subscription[] {
+  const today = new Date().toISOString().split('T')[0];
+  const daysFromNow = (d: number) => new Date(Date.now() + d * 86400000).toISOString().split('T')[0];
+  const demo = [
+    { name: 'Netflix', cost: 15.49, category: 'Entertainment', status: 'active', days: 15, color: '#E50914', url: 'https://netflix.com' },
+    { name: 'Spotify', cost: 10.99, category: 'Entertainment', status: 'active', days: 5, color: '#1DB954', url: 'https://spotify.com' },
+    { name: 'iCloud+', cost: 2.99, category: 'Productivity', status: 'active', days: 22, color: '#147EFB', url: 'https://icloud.com' },
+    { name: 'ChatGPT Plus', cost: 20.0, category: 'Productivity', status: 'active', days: 3, color: '#10a37f', url: 'https://chat.openai.com' },
+    { name: 'Adobe Creative Cloud', cost: 54.99, category: 'Design', status: 'trial', days: 10, color: '#FF0000', url: 'https://adobe.com' },
+  ];
+  return demo.map((d, i) => ({
+    id: `demo-${i}`, userId, name: d.name, description: undefined,
+    category: d.category as any, cost: d.cost, currency: 'USD' as any,
+    billingCycle: 'monthly' as any, paymentMethod: 'Credit Card' as any,
+    startDate: today, nextRenewalDate: daysFromNow(d.days), status: d.status as any,
+    isFreeTrial: d.status === 'trial', trialStartDate: undefined, trialEndDate: undefined,
+    autoRenewsAfterTrial: true, trialConvertedCost: undefined,
+    brandColor: d.color, websiteUrl: d.url, cancelUrl: undefined,
+    notes: undefined, alertDaysBefore: 3, createdAt: today, updatedAt: today,
+  }));
+}
+
 interface UseAppDataProps {
   session: any;
 }
@@ -27,10 +50,21 @@ export function useAppData({ session }: UseAppDataProps) {
     try {
       setIsLoading(true);
 
-      // Profile
-      const { data: profile } = await supabase.from('subtrack_profiles').select('*').eq('id', userId).single();
+      // Profile (created on first sign-in; Clerk user ID is the primary key)
       const defaultEmail = session?.user?.email || '';
       const defaultName = defaultEmail ? defaultEmail.split('@')[0] : 'User';
+      const isGuest = session?.user?.is_anonymous === true;
+
+      if (!isGuest) {
+        await supabase.from('subtrack_profiles').upsert(
+          { id: userId, email: defaultEmail || `${userId}@unknown.local`, name: defaultName },
+          { onConflict: 'id', ignoreDuplicates: true }
+        );
+      }
+
+      const { data: profile } = isGuest
+        ? { data: null }
+        : await supabase.from('subtrack_profiles').select('*').eq('id', userId).single();
       let p: any = { id: userId, email: defaultEmail, name: defaultName, tier: 'free', preferredCurrency: 'USD', alertLeadDays: 3, emailAlertsEnabled: true, avatar: null };
       if (profile) {
         p = { id: profile.id, email: profile.email || defaultEmail, name: profile.name || defaultName, tier: profile.tier || p.tier, preferredCurrency: profile.preferred_currency || p.preferredCurrency, alertLeadDays: profile.alert_lead_days || p.alertLeadDays, emailAlertsEnabled: profile.email_alerts_enabled ?? p.emailAlertsEnabled, avatar: profile.avatar_url };
@@ -38,7 +72,7 @@ export function useAppData({ session }: UseAppDataProps) {
       setCurrentUser(p);
 
       // Subscriptions
-      const { data: subsData } = await supabase.from('subtrack_subscriptions').select('*').order('created_at', { ascending: false });
+      const { data: subsData } = isGuest ? { data: null } : await supabase.from('subtrack_subscriptions').select('*').order('created_at', { ascending: false });
       let mappedSubs: Subscription[] = [];
       if (subsData) {
         mappedSubs = subsData.map(s => ({
@@ -55,67 +89,10 @@ export function useAppData({ session }: UseAppDataProps) {
         setSubscriptions(mappedSubs);
       }
 
-      // Guest Demo Seeding
-      if (session?.user?.is_anonymous && mappedSubs.length === 0) {
-        const today = new Date().toISOString().split('T')[0];
-        const daysFromNow = (d: number) => new Date(Date.now() + d * 86400000).toISOString().split('T')[0];
-        const demoSubs = [
-          {
-            user_id: userId, name: 'Netflix', cost: 15.49, currency: 'USD',
-            billing_cycle: 'monthly', category: 'Entertainment', status: 'active',
-            payment_method: 'Credit Card', start_date: today,
-            next_renewal_date: daysFromNow(15), brand_color: '#E50914',
-            website_url: 'https://netflix.com',
-          },
-          {
-            user_id: userId, name: 'Spotify', cost: 10.99, currency: 'USD',
-            billing_cycle: 'monthly', category: 'Entertainment', status: 'active',
-            payment_method: 'Credit Card', start_date: today,
-            next_renewal_date: daysFromNow(5), brand_color: '#1DB954',
-            website_url: 'https://spotify.com',
-          },
-          {
-            user_id: userId, name: 'iCloud+', cost: 2.99, currency: 'USD',
-            billing_cycle: 'monthly', category: 'Productivity', status: 'active',
-            payment_method: 'Credit Card', start_date: today,
-            next_renewal_date: daysFromNow(22), brand_color: '#147EFB',
-            website_url: 'https://icloud.com',
-          },
-          {
-            user_id: userId, name: 'ChatGPT Plus', cost: 20.00, currency: 'USD',
-            billing_cycle: 'monthly', category: 'Productivity', status: 'active',
-            payment_method: 'Credit Card', start_date: today,
-            next_renewal_date: daysFromNow(3), brand_color: '#10a37f',
-            website_url: 'https://chat.openai.com',
-          },
-          {
-            user_id: userId, name: 'Adobe Creative Cloud', cost: 54.99, currency: 'USD',
-            billing_cycle: 'monthly', category: 'Design', status: 'trial',
-            is_free_trial: true, trial_start_date: today, trial_end_date: daysFromNow(10),
-            auto_renews_after_trial: true, trial_converted_cost: 54.99,
-            payment_method: 'Credit Card', start_date: today,
-            next_renewal_date: daysFromNow(10), brand_color: '#FF0000',
-            website_url: 'https://adobe.com',
-          },
-        ];
-        const { error: seedError } = await supabase.from('subtrack_subscriptions').insert(demoSubs);
-        if (seedError) console.error('[GuestDemo] Seeding failed:', seedError);
-
-        const { data: newSubsData } = await supabase.from('subtrack_subscriptions').select('*').order('created_at', { ascending: false });
-        if (newSubsData) {
-          mappedSubs = newSubsData.map(s => ({
-            id: s.id, userId: s.user_id, name: s.name, description: s.description,
-            category: s.category as any, cost: Number(s.cost), currency: s.currency as any,
-            billingCycle: s.billing_cycle as any, paymentMethod: s.payment_method as any,
-            startDate: s.start_date, nextRenewalDate: s.next_renewal_date, status: s.status as any,
-            isFreeTrial: s.is_free_trial, trialStartDate: s.trial_start_date, trialEndDate: s.trial_end_date,
-            autoRenewsAfterTrial: s.auto_renews_after_trial,
-            trialConvertedCost: s.trial_converted_cost ? Number(s.trial_converted_cost) : undefined,
-            brandColor: s.brand_color, websiteUrl: s.website_url, cancelUrl: s.cancel_url,
-            notes: s.notes, alertDaysBefore: s.alert_days_before, createdAt: s.created_at, updatedAt: s.updated_at,
-          }));
-          setSubscriptions(mappedSubs);
-        }
+      // Guest demo: in-memory only, never written to the database.
+      if (isGuest) {
+        mappedSubs = buildGuestDemoSubscriptions(userId);
+        setSubscriptions(mappedSubs);
       }
 
       // Analytics
@@ -140,7 +117,7 @@ export function useAppData({ session }: UseAppDataProps) {
       });
 
       // Notifications
-      const { data: notifsData } = await supabase.from('subtrack_notifications').select('*').order('created_at', { ascending: false });
+      const { data: notifsData } = isGuest ? { data: null } : await supabase.from('subtrack_notifications').select('*').order('created_at', { ascending: false });
       if (notifsData) {
         setNotifications(notifsData.map(n => ({
           id: n.id, userId: n.user_id, subscriptionId: n.subscription_id || undefined,
@@ -155,7 +132,7 @@ export function useAppData({ session }: UseAppDataProps) {
     } finally {
       setIsLoading(false);
     }
-  }, [session?.user?.id]);
+  }, [session?.user?.id, session?.user?.is_anonymous]);
 
   useEffect(() => {
     if (session?.user?.id) fetchAllData(session.user.id);

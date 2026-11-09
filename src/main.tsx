@@ -3,9 +3,15 @@ import { createRoot } from 'react-dom/client';
 import * as Sentry from '@sentry/react';
 import posthog from 'posthog-js';
 import { ErrorBoundary } from 'react-error-boundary';
+import { ClerkProvider } from '@clerk/react';
 import App from './App.tsx';
 import { GlobalErrorBoundary } from './components/GlobalErrorBoundary';
 import './index.css';
+
+const clerkPublishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+if (!clerkPublishableKey) {
+  throw new Error('Missing VITE_CLERK_PUBLISHABLE_KEY. Add it to your .env file.');
+}
 
 // Initialize Sentry for error tracking
 if (import.meta.env.VITE_SENTRY_DSN) {
@@ -31,9 +37,11 @@ if (import.meta.env.VITE_POSTHOG_KEY) {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <ErrorBoundary FallbackComponent={GlobalErrorBoundary}>
-      <App />
-    </ErrorBoundary>
+    <ClerkProvider publishableKey={clerkPublishableKey}>
+      <ErrorBoundary FallbackComponent={GlobalErrorBoundary}>
+        <App />
+      </ErrorBoundary>
+    </ClerkProvider>
   </StrictMode>,
 );
 

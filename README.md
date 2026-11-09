@@ -9,7 +9,7 @@ Built with React, Supabase, and Stripe, SubTrack includes a built-in automated b
 - **Real-time Dashboard:** Instantly view monthly spend, annual run rate, and category breakdowns.
 - **Smart Alerts:** Automated email notifications (via Resend) sent 3 days before any subscription renews or a free trial ends.
 - **Tier Limits & Monetization:** Built-in Free Tier (limited to 5 subscriptions) and a Pro Tier ($5/mo) powered by the Stripe Customer Portal.
-- **Secure Authentication:** Passwordless & email-based auth using Supabase.
+- **Secure Authentication:** Email and password auth (with password reset) plus anonymous guest mode, powered by Supabase Auth.
 - **Privacy First:** Self-contained architecture with database-level Row Level Security (RLS) ensuring users only ever see their own data.
 
 ## 🛠 Tech Stack
@@ -41,7 +41,9 @@ Create a `.env` file in the root directory based on the `.env.example` file.
 You will need to fill in:
 - `VITE_SUPABASE_URL` & `VITE_SUPABASE_ANON_KEY` (From your Supabase Project settings)
 - `SUPABASE_SERVICE_ROLE_KEY` (For the Netlify admin functions)
-- `VITE_STRIPE_PUBLIC_KEY` & `STRIPE_SECRET_KEY` (From your Stripe Dashboard)
+- `VITE_STRIPE_PUBLISHABLE_KEY` & `STRIPE_SECRET_KEY` (From your Stripe Dashboard)
+- `STRIPE_WEBHOOK_SECRET` (From Stripe Dashboard → Webhooks; required, the webhook rejects unsigned events)
+- `CRON_SECRET` (Any random string; required to call `cron-check` over HTTP)
 - `RESEND_API_KEY` (For email notifications)
 
 ### 4. Database Initialization
@@ -53,7 +55,7 @@ You will need to fill in:
 ```bash
 npm run dev
 ```
-The application will be available at `http://localhost:5173`.
+The Vite dev server runs at `http://localhost:5173`, but the Stripe, cron, and account-deletion features call Netlify Functions. To run them locally, use `npx netlify dev` instead, which serves the app on `http://localhost:8888`.
 
 ---
 
@@ -67,4 +69,4 @@ This project is optimized for deployment on Netlify, as it relies on Netlify Fun
 4. **Publish Directory:** `dist`
 5. **Environment Variables:** In the Netlify dashboard, add all the environment variables from your local `.env` file, ensuring you swap your Stripe `pk_test_...` keys for live `pk_live_...` keys, and use your production Supabase database.
 
-> The cron job `netlify/functions/cron-check.ts` is configured via Netlify's Scheduled Functions to run daily at 8:00 AM.
+> The cron job `netlify/functions/cron-check.ts` is configured via Netlify's Scheduled Functions to run daily at 8:00 AM **UTC** (Netlify schedules use UTC, not your local time).

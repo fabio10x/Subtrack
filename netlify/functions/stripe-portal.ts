@@ -1,9 +1,10 @@
 import { Handler } from '@netlify/functions';
 import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
+import { getClerkUserId } from './_clerk';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2025-01-27.acacia' as any,
+  apiVersion: '2026-07-29.dahlia' as any,
 });
 
 // Admin client to look up stripe_customer_id without RLS restrictions
@@ -17,12 +18,13 @@ export const handler: Handler = async (event) => {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
 
-  try {
-    const { userId } = JSON.parse(event.body || '{}');
+  // Identity comes from the verified Clerk token, never from the request body
+  const userId = await getClerkUserId(event.headers['authorization']);
+  if (!userId) {
+    return { statusCode: 401, body: JSON.stringify({ error: 'Unauthorized' }) };
+  }
 
-    if (!userId) {
-      return { statusCode: 400, body: JSON.stringify({ error: 'Missing userId' }) };
-    }
+  try {
 
     if (!process.env.STRIPE_SECRET_KEY) {
       // Simulated mode for local dev without Stripe keys

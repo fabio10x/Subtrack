@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { useToast } from './useToast';
 import { useModalState } from './useModalState';
 import { useAuth } from './useAuth';
@@ -11,6 +12,38 @@ export function useSubtrackApp() {
   const modals = useModalState();
   const auth = useAuth({ showToast: toast.showToast, setIsUpgradeModalOpen: modals.setIsUpgradeModalOpen });
   const data = useAppData({ session: auth.session });
+
+  // Handle the return from Stripe Checkout: ?upgrade=success or ?upgrade=cancelled.
+  // The flag is cleared from the URL right away, so this message shows once.
+  const [pendingUpgradeRefresh, setPendingUpgradeRefresh] = useState(false);
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const upgrade = params.get('upgrade');
+    if (!upgrade) return;
+
+    if (upgrade === 'success') {
+      toast.showToast('Welcome to SubTrack Pro! Your plan will update in a moment.', 'success');
+      setPendingUpgradeRefresh(true);
+    } else if (upgrade === 'cancelled') {
+      toast.showToast('Upgrade cancelled. You are still on the Free plan.', 'info');
+    }
+
+    params.delete('upgrade');
+    params.delete('session_id');
+    const query = params.toString();
+    window.history.replaceState(null, '', window.location.pathname + (query ? `?${query}` : '') + window.location.hash);
+  }, []);
+
+  // Pro is granted by the Stripe webhook, which can land after the redirect. Re-read the profile
+  // once the user is signed in, a few seconds later.
+  useEffect(() => {
+    if (!pendingUpgradeRefresh || !auth.session?.user?.id) return;
+    const timer = setTimeout(() => {
+      data.fetchAllData(auth.session.user.id);
+      setPendingUpgradeRefresh(false);
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [pendingUpgradeRefresh, auth.session?.user?.id, data.fetchAllData]);
 
   const subs = useSubscriptions({
     session: auth.session,
@@ -28,6 +61,9 @@ export function useSubtrackApp() {
     setCurrentUser: data.setCurrentUser,
     fetchAllData: data.fetchAllData,
     setCurrentView: auth.setCurrentView,
+    getAccessToken: auth.getAccessToken,
+    signOut: auth.handleSignOut,
+    isGuest: auth.session?.user?.is_anonymous === true,
   });
 
   const notifs = useNotifications({

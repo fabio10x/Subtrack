@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '../utils/supabase';
+import { useAuth as useClerkAuth, useUser, useClerk } from '@clerk/react';
+import { setSupabaseTokenGetter } from '../utils/supabase';
 
 type ViewType = 'landing' | 'dashboard' | 'auth' | 'terms' | 'privacy';
 
@@ -7,6 +8,9 @@ interface UseAuthProps {
   showToast: (text: string, type?: 'success' | 'error' | 'info') => void;
   setIsUpgradeModalOpen: (open: boolean) => void;
 }
+
+// Guest mode is a local demo only: it never touches the database.
+export const GUEST_USER_ID = 'guest-demo';
 
 export function useAuth({ showToast, setIsUpgradeModalOpen }: UseAuthProps) {
   const [currentView, setCurrentView] = useState<ViewType>(() => {
@@ -21,25 +25,40 @@ export function useAuth({ showToast, setIsUpgradeModalOpen }: UseAuthProps) {
     return 'landing';
   });
 
-  const [session, setSession] = useState<any>(null);
-  const [isResetPasswordModalOpen, setIsResetPasswordModalOpen] = useState(false);
-  const [newPassword, setNewPassword] = useState('');
-  const [isResettingPassword, setIsResettingPassword] = useState(false);
+  const { isLoaded, isSignedIn, getToken } = useClerkAuth();
+  const { user } = useUser();
+  const clerk = useClerk();
+  const [isGuest, setIsGuest] = useState(false);
+
+  // Give the Supabase client the Clerk token so RLS can identify the user.
+  useEffect(() => {
+    setSupabaseTokenGetter(isSignedIn ? () => getToken({ template: 'supabase' }) : null);
+    return () => setSupabaseTokenGetter(null);
+  }, [isSignedIn, getToken]);
+
+  // Shape kept compatible with the rest of the app: session.user.id, session.user.email, session.access_token.
+  const session = isGuest
+    ? { user: { id: GUEST_USER_ID, email: 'guest@demo.local', is_anonymous: true }, access_token: null }
+    : isSignedIn && user
+      ? {
+          user: {
+            id: user.id,
+            email: user.primaryEmailAddress?.emailAddress || '',
+            is_anonymous: false,
+          },
+          access_token: null,
+        }
+      : null;
+
+  // Server calls (Netlify functions) take a Clerk token as Bearer.
+  const getAccessToken = async (): Promise<string | null> => (isSignedIn ? getToken() : null);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => setSession(session));
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      if (_event === 'PASSWORD_RECOVERY') setIsResetPasswordModalOpen(true);
-      if ((_event === 'SIGNED_IN' || _event === 'TOKEN_REFRESHED') && session) {
-        setCurrentView('dashboard');
-        window.location.hash = 'dashboard';
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
+    if (isSignedIn && currentView === 'auth') {
+      setCurrentView('dashboard');
+      window.location.hash = 'dashboard';
+    }
+  }, [isSignedIn, currentView]);
 
   useEffect(() => {
     const onHashChange = () => {
@@ -52,17 +71,13 @@ export function useAuth({ showToast, setIsUpgradeModalOpen }: UseAuthProps) {
     return () => window.removeEventListener('hashchange', onHashChange);
   }, []);
 
-  const handleEnterDashboard = async (tier: 'free' | 'pro' = 'pro') => {
+  const handleEnterDashboard = async (_tier: 'free' | 'pro' = 'pro') => {
     if (!session) {
-      try {
-        const { error } = await supabase.auth.signInAnonymously();
-        if (error) throw error;
-        // Session will be updated by onAuthStateChange, which redirects to dashboard
-      } catch (err: any) {
-        showToast('Failed to start guest session: ' + err.message, 'error');
-        setCurrentView('auth');
-        window.location.hash = 'auth';
-      }
+      // Guest demo: local only, no account created
+      setIsGuest(true);
+      setCurrentView('dashboard');
+      window.location.hash = 'dashboard';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
     setCurrentView('dashboard');
@@ -89,17 +104,19 @@ export function useAuth({ showToast, setIsUpgradeModalOpen }: UseAuthProps) {
   };
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
+    if (isGuest) {
+      setIsGuest(false);
+    } else {
+      await clerk.signOut();
+    }
     setCurrentView('landing');
     window.location.hash = '';
   };
 
   return {
-    session, currentView, setCurrentView,
-    isResetPasswordModalOpen, setIsResetPasswordModalOpen,
-    newPassword, setNewPassword,
-    isResettingPassword, setIsResettingPassword,
+    session, currentView, setCurrentView, isLoaded, getAccessToken,
     handleEnterDashboard, handleOpenStripeFromLanding,
     handleBackToLanding, handleSignOut,
+    showToast,
   };
 }

@@ -11,7 +11,8 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
-    "@google/genai": "^2.4.0",
+    "@clerk/backend": "^3.26.6",
+    "@clerk/react": "^6.18.5",
     "@netlify/functions": "^6.0.0",
     "@sentry/react": "^10.74.0",
     "@supabase/auth-ui-react": "^0.4.7",
@@ -20,8 +21,6 @@
     "@tailwindcss/vite": "^4.1.14",
     "@vitejs/plugin-react": "^5.0.4",
     "canvas-confetti": "^1.9.4",
-    "dotenv": "^17.2.3",
-    "express": "^4.21.2",
     "lucide-react": "^0.546.0",
     "motion": "^12.23.24",
     "posthog-js": "^1.433.4",
@@ -38,6 +37,7 @@
     "@types/node": "^22.14.0",
     "autoprefixer": "^10.4.21",
     "esbuild": "^0.25.0",
+    "netlify-cli": "^17.38.1",
     "tailwindcss": "^4.1.14",
     "tsx": "^4.21.0",
     "typescript": "~5.8.2",
